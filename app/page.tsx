@@ -11,7 +11,10 @@ const roleLabel: Record<(typeof roles)[number], string> = {
 const highlights = [
   { title: "Unified dashboard", detail: "Access classes, clubs, events, and updates in one place." },
   { title: "Role-aware navigation", detail: "Review experiences tailored for students, faculty, staff, and admins." },
-  { title: "Polished presentation", detail: "Readable cards, calm spacing, and clear hierarchy across every page." }
+  {
+    title: "Classroom booking floor plan",
+    detail: "View classroom locations by floor and quickly distinguish booked rooms from available ones."
+  }
 ] as const;
 
 export default function HomePage() {
@@ -25,7 +28,9 @@ export default function HomePage() {
               Complete school operations with a refined, modern interface.
             </h1>
             <p className="mt-4 max-w-2xl text-lg text-slate-600">
-              The hub now includes fully developed pages for academics, activities, communication, and administration.
+              Bayside Hub is a role-aware school operations platform built with Next.js 14 (App Router) and Supabase.
+              It centralizes classes, clubs, events, announcements, internal tools, and administrative workflows in a
+              single interface.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link

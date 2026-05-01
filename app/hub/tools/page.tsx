@@ -1,6 +1,13 @@
+import { ClassroomBookingFloorPlan } from "@/components/hub/classroom-booking-floor-plan";
 import { HubPageShell, SurfaceCard, Badge } from "@/components/hub/page-shell";
 
 const tools = [
+  {
+    name: "Classroom Booking Board",
+    owner: "Academic Operations",
+    detail: "Visual floor plans show classroom locations and whether each room is already booked.",
+    status: "Healthy"
+  },
   {
     name: "Facility Request Queue",
     owner: "Operations",
@@ -23,6 +30,7 @@ const tools = [
 
 const runbook = [
   "Review unresolved requests by 9:00 AM daily.",
+  "Confirm classroom bookings against floor plans before publishing room assignments.",
   "Escalate blocked tasks older than 48 hours.",
   "Close completed tickets with owner notes for audit traceability."
 ] as const;
@@ -66,6 +74,13 @@ export default function InternalToolsPage() {
           </ul>
         </SurfaceCard>
       </div>
+
+      <SurfaceCard
+        title="Classroom booking system"
+        description="Visual floor plan by level. Select classrooms to mark them booked or available."
+      >
+        <ClassroomBookingFloorPlan />
+      </SurfaceCard>
     </HubPageShell>
   );
 }

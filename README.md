@@ -10,6 +10,7 @@ The project combines a polished frontend shell with typed backend utilities, dat
 - Complete `/hub/*` page suite with a consistent visual system
 - Supabase-backed authorization helpers for club announcement permissions
 - Secure announcement creation route with clear error handling
+- Interactive classroom booking floor plan that shows room locations by floor and booked-vs-available status colors
 - Vitest + React Testing Library coverage for role-based component behavior and accessibility
 - Route-handler integration tests for success, auth, validation, and RLS cases
 

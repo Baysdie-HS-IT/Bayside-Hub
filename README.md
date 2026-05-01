@@ -43,6 +43,12 @@ Bayside_hub/
 |- docs/
 |  |- api-reference.md
 |  |- architecture.md
+|  |- wiki/
+|  |  |- Home.md
+|  |  |- Platform-Overview.md
+|  |  |- Roles-and-Access.md
+|  |  |- Classroom-Booking-System.md
+|  |  `- Developer-Operations.md
 |  `- database-schema.md
 |- lib/
 |  |- auth/
@@ -98,3 +104,4 @@ Club board authority is scoped to a user's own club and enforced through both ro
 - API contract: [`docs/api-reference.md`](docs/api-reference.md)
 - Scalable architecture design: [`docs/architecture.md`](docs/architecture.md)
 - Database and RLS schema: [`docs/database-schema.md`](docs/database-schema.md)
+- Project wiki home: [`docs/wiki/Home.md`](docs/wiki/Home.md)

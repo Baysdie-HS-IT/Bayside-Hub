@@ -1,0 +1,11 @@
+{
+  "/page": "app/page.js",
+  "/hub/clubs/page": "app/hub/clubs/page.js",
+  "/hub/admin/page": "app/hub/admin/page.js",
+  "/hub/tools/page": "app/hub/tools/page.js",
+  "/hub/page": "app/hub/page.js",
+  "/hub/assignments/page": "app/hub/assignments/page.js",
+  "/hub/rosters/page": "app/hub/rosters/page.js",
+  "/hub/events/page": "app/hub/events/page.js",
+  "/hub/announcements/page": "app/hub/announcements/page.js"
+}

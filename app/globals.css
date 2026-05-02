@@ -6,6 +6,11 @@
   body {
     @apply min-h-screen bg-gradient-to-b from-slate-50 via-slate-50 to-bay-mist text-bay-ink;
   }
+
+  /* dark mode base when `dark` class present on html */
+  html.dark body {
+    @apply bg-slate-900 text-slate-100;
+  }
 }
 
 @layer components {
@@ -19,5 +24,19 @@
 
   .section-surface {
     @apply rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm;
+  }
+
+  .left-sidebar {
+    @apply sticky top-6 h-[calc(100vh-96px)] overflow-auto;
+  }
+
+  /* small visual helpers for the nav */
+  .nav-section-title {
+    @apply mt-4 mb-2 px-3 text-xs font-semibold uppercase text-slate-500 tracking-wide;
+  }
+
+  /* collapsed sidebar helpers */
+  .left-sidebar .sr-only {
+    @apply not-sr-only hidden;
   }
 }

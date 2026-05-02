@@ -1,17 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { useEffect } from "react";
+
+type ThemeOption = "light" | "dark" | "system";
 
 type Settings = {
   receive_newsletter?: boolean;
-  dark_mode?: boolean;
+  theme?: ThemeOption;
   [key: string]: any;
 };
 
 export default function SettingsForm({ initialSettings }: { initialSettings?: Settings }) {
-  const [settings, setSettings] = useState<Settings>(initialSettings ?? { receive_newsletter: true, dark_mode: false });
+  const normalized: Settings = {
+    receive_newsletter: true,
+    theme: "system",
+    ...initialSettings
+  };
+
+  // Backwards compatibility: support old `dark_mode` boolean
+  if (normalized.theme === undefined && (normalized as any).dark_mode !== undefined) {
+    normalized.theme = (normalized as any).dark_mode ? "dark" : "light";
+  }
+
+  const [settings, setSettings] = useState<Settings>(normalized);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -22,14 +34,39 @@ export default function SettingsForm({ initialSettings }: { initialSettings?: Se
     // apply theme on mount: prefer localStorage, then user settings
     try {
       const stored = localStorage.getItem(THEME_KEY);
-      const preferDark = stored ? stored === "dark" : !!settings.dark_mode;
-      if (preferDark) document.documentElement.classList.add("dark");
-      else document.documentElement.classList.remove("dark");
+      const theme = stored || settings.theme || "system";
+      applyTheme(theme as ThemeOption);
     } catch {
-      if (settings.dark_mode) document.documentElement.classList.add("dark");
-      else document.documentElement.classList.remove("dark");
+      applyTheme((settings.theme as ThemeOption) || "system");
     }
   }, []);
+
+  function applyTheme(theme: ThemeOption) {
+    try {
+      if (theme === "dark") {
+        document.documentElement.classList.add("dark");
+        localStorage.setItem(THEME_KEY, "dark");
+      } else if (theme === "light") {
+        document.documentElement.classList.remove("dark");
+        localStorage.setItem(THEME_KEY, "light");
+      } else {
+        // system
+        try {
+          localStorage.setItem(THEME_KEY, "system");
+        } catch {}
+        if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+      }
+      // add a short transition class for smooth fade
+      document.documentElement.classList.add("theme-transition");
+      window.setTimeout(() => document.documentElement.classList.remove("theme-transition"), 300);
+    } catch {
+      // ignore
+    }
+  }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -47,12 +84,27 @@ export default function SettingsForm({ initialSettings }: { initialSettings?: Se
       const { error } = await supa.auth.updateUser({ data: { settings } });
       if (error) setMessage(error.message);
       else setMessage("Settings saved.");
+      // also set server cookie so SSR can read the theme immediately
+      try {
+        await fetch("/api/auth/set-theme", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ theme: settings.theme ?? "system" }) });
+      } catch {}
     } catch (err) {
       setMessage("Failed to save settings.");
     } finally {
       setLoading(false);
     }
   }
+
+  // matchMedia listener to follow system when theme === 'system'
+  useEffect(() => {
+    if (settings.theme !== "system") return;
+    const m = window.matchMedia("(prefers-color-scheme: dark)");
+    const handler = (e: MediaQueryListEvent) => {
+      applyTheme("system");
+    };
+    m.addEventListener?.("change", handler);
+    return () => m.removeEventListener?.("change", handler);
+  }, [settings.theme]);
 
   return (
     <div className="space-y-4">
@@ -65,29 +117,52 @@ export default function SettingsForm({ initialSettings }: { initialSettings?: Se
         <span className="text-sm">Receive newsletter emails</span>
       </label>
 
-      <label className="flex items-center gap-3">
-        <input
-          type="checkbox"
-          checked={!!settings.dark_mode}
-          onChange={(e) => {
-            const next = { ...settings, dark_mode: e.target.checked };
-            setSettings(next);
-            // optimistic UI: apply immediately
-            try {
-              if (next.dark_mode) {
-                document.documentElement.classList.add("dark");
-                localStorage.setItem(THEME_KEY, "dark");
-              } else {
-                document.documentElement.classList.remove("dark");
-                localStorage.setItem(THEME_KEY, "light");
-              }
-            } catch {
-              /* ignore */
-            }
-          }}
-        />
-        <span className="text-sm">Enable dark mode</span>
-      </label>
+      <div>
+        <div className="text-sm font-medium">Theme</div>
+        <div className="mt-2 flex gap-2">
+          <label className="inline-flex items-center gap-2 rounded-md border px-3 py-2 hover:bg-slate-50">
+            <input
+              type="radio"
+              name="theme"
+              value="system"
+              checked={settings.theme === "system"}
+              onChange={() => {
+                setSettings({ ...settings, theme: "system" });
+                applyTheme("system");
+              }}
+            />
+            <span className="text-sm">System</span>
+          </label>
+
+          <label className="inline-flex items-center gap-2 rounded-md border px-3 py-2 hover:bg-slate-50">
+            <input
+              type="radio"
+              name="theme"
+              value="light"
+              checked={settings.theme === "light"}
+              onChange={() => {
+                setSettings({ ...settings, theme: "light" });
+                applyTheme("light");
+              }}
+            />
+            <span className="text-sm">Light</span>
+          </label>
+
+          <label className="inline-flex items-center gap-2 rounded-md border px-3 py-2 hover:bg-slate-50">
+            <input
+              type="radio"
+              name="theme"
+              value="dark"
+              checked={settings.theme === "dark"}
+              onChange={() => {
+                setSettings({ ...settings, theme: "dark" });
+                applyTheme("dark");
+              }}
+            />
+            <span className="text-sm">Dark</span>
+          </label>
+        </div>
+      </div>
 
       <div>
         <button onClick={handleSave} className="rounded-md bg-bay-teal px-4 py-2 text-sm font-semibold text-white" disabled={loading}>

@@ -39,7 +39,8 @@ export default function LoginForm() {
     try {
       const supa = client();
       const redirectTo = typeof window !== "undefined" ? window.location.origin + "/hub" : undefined;
-      const { error } = await supa.auth.signInWithOAuth({ provider, options: { redirectTo } });
+      const callback = typeof window !== "undefined" ? window.location.origin + "/auth/callback" : redirectTo;
+      const { error } = await supa.auth.signInWithOAuth({ provider, options: { redirectTo: callback } });
       if (error) setMessage(error.message);
       // Note: on success Supabase will redirect the browser to the provider consent flow.
     } catch (err) {

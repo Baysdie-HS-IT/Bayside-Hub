@@ -1,81 +1,42 @@
-import { HubPageShell, SurfaceCard, Badge } from "@/components/hub/page-shell";
+import { HubPageShell } from "@/components/hub/page-shell";
+import EventCard from "@/components/events/event-card";
+import Calendar from "@/components/events/calendar";
+import EventsView from "@/components/events/events-view";
+import { createSupabaseRouteClient } from "@/lib/supabase/auth";
+import Link from "next/link";
 
-const timeline = [
-  {
-    title: "College Planning Night",
-    when: "May 6 · 6:30 PM",
-    location: "Main Hall",
-    scope: "Schoolwide",
-    note: "Counseling team and alumni panel."
-  },
-  {
-    title: "STEM Expo",
-    when: "May 9 · 4:00 PM",
-    location: "Innovation Lab",
-    scope: "Schoolwide",
-    note: "Project demos and mentor judging."
-  },
-  {
-    title: "Arts Guild Gallery Walk",
-    when: "May 11 · 5:15 PM",
-    location: "North Atrium",
-    scope: "Club",
-    note: "Student-curated spring portfolio showcase."
-  },
-  {
-    title: "Track & Field Invitational",
-    when: "May 14 · 10:00 AM",
-    location: "Athletics Complex",
-    scope: "Athletics",
-    note: "Regional schools attending."
-  }
-] as const;
+export default async function EventsPage() {
+  const supabase = createSupabaseRouteClient();
+  const { data } = await supabase
+    .from("events")
+    .select("id, title, description, location, starts_at, ends_at, capacity, club_id")
+    .eq("status", "published")
+    .gte("starts_at", new Date().toISOString())
+    .order("starts_at", { ascending: true })
+    .limit(50);
 
-const planningNotes = [
-  "AV support requested for three upcoming events.",
-  "Parent volunteer coverage at 92% for this month.",
-  "Transportation finalized for the invitational."
-] as const;
+  const events = data ?? [];
 
-export default function EventsPage() {
   return (
-    <HubPageShell
-      eyebrow="Calendar"
-      title="Events"
-      description="Track campus events with clear scheduling, ownership, and delivery readiness."
-      stats={[
-        { label: "Upcoming events", value: "9", detail: "4 this week, 5 next week" },
-        { label: "Registered attendees", value: "648", detail: "Across all open registrations" },
-        { label: "Venue utilization", value: "78%", detail: "Main venues through month-end" },
-        { label: "Planning blockers", value: "2", detail: "Pending AV and transport confirmations" }
-      ]}
-    >
+    <HubPageShell eyebrow="Calendar" title="Events" description="A centralized list of upcoming events across campus.">
       <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
-        <SurfaceCard title="Upcoming timeline" description="Scheduled events and delivery context.">
-          <ol className="space-y-3">
-            {timeline.map((event) => (
-              <li className="rounded-xl border border-slate-200 p-4" key={event.title}>
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h2 className="text-base font-semibold text-bay-navy">{event.title}</h2>
-                  <Badge tone={event.scope === "Schoolwide" ? "info" : "neutral"}>{event.scope}</Badge>
-                </div>
-                <p className="mt-1 text-sm text-slate-600">{event.when}</p>
-                <p className="mt-1 text-sm text-slate-600">{event.location}</p>
-                <p className="mt-2 text-sm text-slate-700">{event.note}</p>
-              </li>
-            ))}
-          </ol>
-        </SurfaceCard>
+        <div>
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-bay-navy">Upcoming events</h2>
+            <div className="flex items-center gap-2">
+              <Link href="/hub/events/new" className="rounded-md border border-slate-300 bg-white px-3 py-1 text-sm font-semibold text-slate-700">New event</Link>
+            </div>
+          </div>
 
-        <SurfaceCard title="Planning notes" description="Operational updates tied to near-term events.">
-          <ul className="space-y-3">
-            {planningNotes.map((note) => (
-              <li className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700" key={note}>
-                {note}
-              </li>
-            ))}
-          </ul>
-        </SurfaceCard>
+          <EventsView />
+        </div>
+
+        <aside>
+          <div className="rounded-xl border border-slate-200 p-4">
+            <h3 className="text-sm font-semibold text-bay-navy">Filters</h3>
+            <p className="mt-2 text-sm text-slate-600">Search and filters will be added soon.</p>
+          </div>
+        </aside>
       </div>
     </HubPageShell>
   );

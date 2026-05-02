@@ -84,83 +84,181 @@ export async function createClub(body: CreateClubBody) {
 ## `/api/events`
 
 ### `GET /api/events`
-**Purpose:** List published events (plus manageable draft/cancelled events for authorized users).
+**Purpose:** List published upcoming events with optional search/filter.
 
 **Params (query):**
-- `clubId?: string`
-- `status?: "draft" | "published" | "cancelled"`
-- `startsAfter?: string` (ISO datetime)
-- `startsBefore?: string` (ISO datetime)
-- `limit?: number`
-- `cursor?: string`
+- `search?: string` — search event title
+- `tag?: string` — filter by single tag
+- `start?: string` (ISO datetime) — filter events starting on/after this date
+- `end?: string` (ISO datetime) — filter events starting on/before this date
 
 **Response (`200`):**
 ```ts
 type EventsListResponse = {
-  data: Array<{
+  events: Array<{
     id: string;
-    clubId: string | null;
+    club_id: string | null;
     title: string;
     description: string;
     location: string | null;
-    startsAt: string;
-    endsAt: string | null;
+    starts_at: string;
+    ends_at: string | null;
     capacity: number | null;
-    status: "draft" | "published" | "cancelled";
+    tags: string[] | null;
   }>;
-  nextCursor: string | null;
 };
 ```
 
 **Errors:**
 - `400` invalid query params
-- `401` authentication required
 - `500` unexpected server error
 
 ### `POST /api/events`
-**Purpose:** Create an event (admin or board member of target club).
+**Purpose:** Create a published event (authenticated users).
 
 **Params (body):**
 ```ts
 type CreateEventBody = {
-  clubId: string | null; // null for schoolwide event (admin only)
+  club_id?: string | null;
   title: string;
   description?: string;
-  location?: string;
-  startsAt: string; // ISO datetime
-  endsAt?: string | null;
+  location?: string | null;
+  starts_at: string; // ISO datetime, required
+  ends_at?: string | null;
   capacity?: number | null;
-  status?: "draft" | "published" | "cancelled";
+  tags?: string[]; // comma-separated in form; array in JSON
+  status?: "draft" | "published"; // default "published"
 };
 ```
 
-**Response (`201`):**
+**Response (`200`):**
 ```ts
-type CreateEventResponse = { id: string };
+type CreateEventResponse = { event: any };
 ```
 
 **Errors:**
 - `400` validation failure
-- `401` authentication required
-- `403` forbidden by role/RLS
+- `401` not authenticated
 - `500` unexpected server error
 
-**Example TS code:**
+### `PATCH /api/events/[id]`
+**Purpose:** Update an event (event owner or admin).
+
+**Params (body):**
 ```ts
-export async function createEvent(body: CreateEventBody) {
-  const response = await fetch("/api/events", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-
-  if (!response.ok) {
-    throw new Error(`Create event failed: ${response.status}`);
-  }
-
-  return (await response.json()) as CreateEventResponse;
-}
+type UpdateEventBody = Partial<{
+  title: string;
+  description: string;
+  location: string | null;
+  starts_at: string;
+  ends_at: string | null;
+  capacity: number | null;
+  tags: string[];
+  status: "draft" | "published" | "cancelled";
+}>;
 ```
+
+**Response (`200`):**
+```ts
+type UpdateEventResponse = { event: any };
+```
+
+**Errors:**
+- `400` validation failure
+- `401` not authenticated
+- `403` not owner or admin
+- `404` event not found
+- `500` unexpected server error
+
+### `DELETE /api/events/[id]`
+**Purpose:** Delete an event (event owner or admin).
+
+**Response (`200`):**
+```ts
+type DeleteEventResponse = { ok: true };
+```
+
+**Errors:**
+- `401` not authenticated
+- `403` not owner or admin
+- `404` event not found
+- `500` unexpected server error
+
+### `POST /api/events/[id]/register`
+**Purpose:** Register authenticated user for an event (RSVP).
+
+**Params (body):**
+```ts
+type RegisterEventBody = {
+  name?: string;
+  email?: string;
+};
+```
+
+**Response (`200`):**
+```ts
+type RegisterResponse = { registration: any };
+```
+
+**Errors:**
+- `400` registration failed
+- `401` not authenticated
+- `409` event is full (capacity reached)
+- `500` unexpected server error
+
+### `GET /api/events/[id]/registrations`
+**Purpose:** Get event attendee list (event owner/admin) or count (public).
+
+**Response (`200`):**
+- If owner: `{ registrations: [...], count: N }`
+- If public: `{ count: N }`
+
+```ts
+type RegistrationsResponse = {
+  registrations?: Array<{
+    id: string;
+    attendee_name: string;
+    attendee_email: string;
+    registered_at: string;
+  }>;
+  count: number;
+};
+```
+
+**Errors:**
+- `404` event not found
+- `500` unexpected server error
+
+### `GET /api/events/[id]/ical`
+**Purpose:** Download event as iCal file.
+
+**Response (`200`):**
+```
+Content-Type: text/calendar; charset=utf-8
+Content-Disposition: attachment; filename="event-[id].ics"
+```
+
+**Errors:**
+- `404` event not found
+- `500` unexpected server error
+
+### `GET /api/events/[id]/export`
+**Purpose:** Export attendee list as CSV (event owner/admin).
+
+**Response (`200`):**
+```
+Content-Type: text/csv; charset=utf-8
+Content-Disposition: attachment; filename="event-[id]-attendees.csv"
+```
+
+CSV columns: `id,attendee_name,attendee_email,registered_at`
+
+**Errors:**
+- `401` not authenticated
+- `403` not owner or admin
+- `404` event not found
+- `500` unexpected server error
+
 
 ---
 

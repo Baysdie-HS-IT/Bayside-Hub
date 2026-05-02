@@ -11,6 +11,11 @@
   html.dark body {
     @apply bg-slate-900 text-slate-100;
   }
+
+  /* smooth theme-transition helper */
+  .theme-transition body {
+    transition: background-color 250ms ease, color 250ms ease;
+  }
 }
 
 @layer components {

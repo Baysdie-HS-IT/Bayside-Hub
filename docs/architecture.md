@@ -119,7 +119,50 @@ This ensures scoped editing even if an API-level check is bypassed.
 
 ---
 
-## 7. Event + Announcement Pipelines
+## 7. Events System
+
+### Overview
+The events system provides a centralized hub for school-wide and club-specific events. Students discover events via calendar and list views; event owners manage registrations and attendees.
+
+### Data model
+- **`events` table**: title, description, location, starts_at, ends_at, capacity (optional), tags (optional array), status (draft/published/cancelled), created_by
+- **`event_registrations` table**: event_id, user_id, attendee_name, attendee_email, registered_at
+
+### Authorization
+- Anyone can view published upcoming events
+- Event owners (created_by) and admins can edit/delete events
+- Capacity enforcement: RSVP prevented when registrations reach capacity (409 Conflict)
+- Attendee list visible to event owners/admins only; public sees registration count
+
+### Features
+- **Month/week calendar view** with event popovers
+- **Search and tag filtering** for discoverability
+- **RSVP registration** with capacity checks (server-side)
+- **iCal download** and **Google Calendar** links
+- **Attendee management**: list view, CSV export (owners only)
+- **Admin controls**: edit/delete events (owners/admins)
+- **Event creation with tags and capacity**
+
+### API endpoints
+- `GET /api/events?search=<str>&tag=<str>&start=<ISO>&end=<ISO>` — list events with optional filters
+- `POST /api/events` — create event (authenticated users)
+- `GET /api/events/[id]` — fetch single event
+- `PATCH /api/events/[id]` — update event (owner/admin)
+- `DELETE /api/events/[id]` — delete event (owner/admin)
+- `POST /api/events/[id]/register` — register user; returns 409 if full
+- `GET /api/events/[id]/registrations` — list attendees (owner view) or count (public)
+- `GET /api/events/[id]/ical` — download iCal file
+- `GET /api/events/[id]/export` — download attendee CSV (owner/admin)
+
+### UI routes
+- `/hub/events` — event hub with calendar + list
+- `/hub/events/[id]` — event detail and attendee list
+- `/hub/events/[id]/edit` — edit event form (owners/admins)
+- `/hub/events/new` — create event form
+
+---
+
+## 8. Event + Announcement Pipelines
 
 ### Event pipeline
 1. Validate payload (`title`, schedule bounds, club ownership).
@@ -140,7 +183,7 @@ This ensures scoped editing even if an API-level check is bypassed.
 
 ---
 
-## 8. Caching Strategy
+## 9. Caching Strategy
 
 ### App layer (Next.js)
 - Use tagged fetch caching for read-heavy pages:
@@ -158,7 +201,7 @@ This ensures scoped editing even if an API-level check is bypassed.
 
 ---
 
-## 9. Vercel Deployment Architecture
+## 10. Vercel Deployment Architecture
 
 ### Environments
 - **Preview:** branch deployments for QA and role testing
@@ -182,7 +225,7 @@ This ensures scoped editing even if an API-level check is bypassed.
 
 ---
 
-## 10. Scaling Roadmap
+## 11. Scaling Roadmap
 - Add background jobs for notifications and digest delivery
 - Introduce queue/outbox pattern for non-blocking side effects
 - Add per-endpoint rate limiting for write operations

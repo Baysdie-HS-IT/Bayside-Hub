@@ -6,7 +6,7 @@ export default async function SettingsPage() {
   const { data } = await supabase.auth.getUser();
   const user = data?.user ?? null;
 
-  const settings = (user as any)?.user_metadata?.settings ?? { receive_newsletter: true, dark_mode: false };
+  const settings = (user as any)?.user_metadata?.settings ?? { receive_newsletter: true, theme: "system" };
 
   return (
     <div className="min-h-screen shell-container py-8">

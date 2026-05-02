@@ -17,7 +17,28 @@ type RootLayoutProps = Readonly<{
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <script
+          // inline script runs before React hydration to avoid flash-of-light
+          dangerouslySetInnerHTML={{
+            __html: `(() => {
+  try {
+    var theme = null;
+    try { theme = localStorage.getItem('bayside.theme'); } catch(e) { theme = null; }
+    if (theme === 'dark') { document.documentElement.classList.add('dark'); return; }
+    if (theme === 'light') { document.documentElement.classList.remove('dark'); return; }
+    // 'system' or null -> follow OS preference
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  } catch (e) { /* ignore */ }
+})();`
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }

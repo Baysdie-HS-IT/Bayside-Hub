@@ -6,13 +6,21 @@ Bayside Hub is a role-aware school operations platform built with Next.js 14 (Ap
 The project combines a polished frontend shell with typed backend utilities, database-level row-level security (RLS), and test coverage for role-based UI rendering and secure announcement creation.
 
 ## Features
-- Role-based hub navigation for **student**, **teacher**, **staff**, and **admin** users
-- Complete `/hub/*` page suite with a consistent visual system
-- Supabase-backed authorization helpers for club announcement permissions
-- Secure announcement creation route with clear error handling
-- Interactive classroom booking floor plan that shows room locations by floor and booked-vs-available status colors
-- Vitest + React Testing Library coverage for role-based component behavior and accessibility
-- Route-handler integration tests for success, auth, validation, and RLS cases
+- **Role-based hub navigation** for student, teacher, staff, and admin users with intelligent sidebar and user menu
+- **Complete `/hub/*` page suite** with consistent design system and responsive layout
+- **Centralized events system**:
+  - Month/week calendar view with event popovers
+  - Search and tag-based filtering for event discovery
+  - RSVP registration with capacity management (409 on full)
+  - Event owner dashboard: manage attendees, export CSV, view registrations
+  - iCal download and Google Calendar integration links
+  - Admin event management: create, edit, delete with proper authorization
+- **Theme persistence**: light/dark mode with SSR cookie sync and localStorage backup
+- **Authentication**: magic link and OAuth (Google/GitHub/Apple) with server-side session handling
+- **Supabase-backed authorization** helpers for club announcement permissions and role-based RLS
+- **Interactive classroom booking floor plan** showing room locations and availability by floor
+- **Vitest + React Testing Library coverage** for role-based component behavior and accessibility
+- **Route-handler integration tests** for success, auth, validation, and RLS cases
 
 ## Tech Stack
 | Layer | Technology |
@@ -100,7 +108,35 @@ Club board authority is scoped to a user's own club and enforced through both ro
 - Admins retain global override authority
 - The `canCreateClubAnnouncement` helper in `lib/auth/announcement-permissions.ts` mirrors this rule before write attempts
 
+## Events System
+
+The events hub provides a centralized way for students to discover and register for school activities.
+
+### For Students
+- Browse upcoming events on `/hub/events` with calendar and list views
+- Search events by title or filter by tag
+- Switch between month and week calendar views
+- Click events to see details, capacity, and registration status
+- RSVP to events (blocked if at capacity)
+- Add events to Google Calendar or download as iCal
+
+### For Event Organizers
+- Create events on `/hub/events/new` with title, description, time, location, capacity, and tags
+- View attendee list and registration count on the event detail page
+- Edit or delete events you created (or admin can manage any event)
+- Export attendee list as CSV for record-keeping
+- Share event details via iCal or Google Calendar links
+
+### Technical
+- Events are stored in `public.events` with optional capacity limits
+- Registrations are tracked in `public.event_registrations`
+- Server-side capacity checks prevent registration when full (HTTP 409)
+- Event owners and admins see full attendee details; others see count only
+- All APIs include proper auth checks and RLS enforcement
+- See `docs/api-reference.md` for complete API documentation
+
 ## Additional Documentation
+
 - API contract: [`docs/api-reference.md`](docs/api-reference.md)
 - Scalable architecture design: [`docs/architecture.md`](docs/architecture.md)
 - Database and RLS schema: [`docs/database-schema.md`](docs/database-schema.md)

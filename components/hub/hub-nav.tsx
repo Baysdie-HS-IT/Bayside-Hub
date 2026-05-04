@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { quickAccessItems } from "@/lib/auth/roles";
+import { getHubSectionTheme } from "@/components/hub/section-theme";
 
 const mainItem = { label: "Dashboard", href: "/hub" } as const;
 
@@ -72,11 +73,13 @@ type NavEntry = { label: string; href: string; icon?: string };
 
 export function HubNav({ collapsed = false }: { collapsed?: boolean }) {
   const pathname = usePathname() ?? "/";
+  const theme = getHubSectionTheme(pathname);
 
   const quickItems: NavEntry[] = quickAccessItems.map((i) => ({ label: i.label, href: i.href }));
 
-  const groups: { title?: string; items: NavEntry[] }[] = [
+  const groups: { title?: string; items: readonly NavEntry[] }[] = [
     { title: undefined, items: [mainItem] },
+    { title: "Current section", items: theme.sectionLinks },
     { title: "Quick Access", items: quickItems }
   ];
 
@@ -100,23 +103,30 @@ export function HubNav({ collapsed = false }: { collapsed?: boolean }) {
 
   return (
     <nav aria-label="Hub navigation" className="py-4 px-2">
+      {!collapsed ? (
+        <div className="mb-4 px-3">
+          <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${theme.sidebarBadgeClassName}`}>
+            {theme.label}
+          </span>
+        </div>
+      ) : null}
       {groups.map((group, idx) => (
         <div key={idx} className="mb-3">
           {group.title ? <div className="nav-section-title">{group.title}</div> : null}
           <ul className="space-y-1">
             {group.items.map((item) => (
               <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition ${
-                      isActive(item.href)
-                        ? "bg-bay-navy/5 text-bay-navy"
-                        : "text-slate-700 hover:bg-bay-mist hover:text-bay-navy"
-                    }`}
-                  >
-                    <span className="inline-flex w-4 text-slate-400">{<Icon name={iconFor(item.label)} />}</span>
-                    <span className={`${collapsed ? "sr-only" : ""}`}>{item.label}</span>
-                  </Link>
+                <Link
+                  href={item.href}
+                  className={`flex items-center gap-3 rounded-md border px-3 py-2 text-sm font-medium transition ${
+                    isActive(item.href)
+                      ? theme.navActiveClassName
+                      : `border-transparent text-slate-700 ${theme.navHoverClassName}`
+                  }`}
+                >
+                  <span className="inline-flex w-4 text-slate-400">{<Icon name={iconFor(item.label)} />}</span>
+                  <span className={`${collapsed ? "sr-only" : ""}`}>{item.label}</span>
+                </Link>
               </li>
             ))}
           </ul>

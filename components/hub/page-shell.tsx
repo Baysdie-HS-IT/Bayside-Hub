@@ -1,4 +1,8 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import { getHubSectionTheme } from "@/components/hub/section-theme";
 
 type PageStat = Readonly<{
   label: string;
@@ -16,13 +20,16 @@ type HubPageShellProps = Readonly<{
 }>;
 
 export function HubPageShell({ eyebrow, title, description, stats = [], actions, children }: HubPageShellProps) {
+  const pathname = usePathname() ?? "/hub";
+  const theme = getHubSectionTheme(pathname);
+
   return (
     <main className="space-y-6">
-      <section className="glass-panel border-slate-200/80 p-7 sm:p-8">
+      <section className={`glass-panel p-7 sm:p-8 ${theme.shellClassName}`}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-bay-teal">{eyebrow}</p>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight text-bay-navy sm:text-4xl">{title}</h1>
+            <p className={`text-xs font-semibold uppercase tracking-[0.22em] ${theme.eyebrowClassName}`}>{eyebrow}</p>
+            <h1 className={`mt-3 text-3xl font-bold tracking-tight sm:text-4xl ${theme.titleClassName}`}>{title}</h1>
             <p className="mt-3 max-w-3xl text-sm text-slate-600 sm:text-base">{description}</p>
           </div>
           {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
@@ -32,7 +39,7 @@ export function HubPageShell({ eyebrow, title, description, stats = [], actions,
             {stats.map((stat) => (
               <div className="rounded-xl border border-slate-200/90 bg-white/90 p-4" key={stat.label}>
                 <dt className="text-xs font-medium uppercase tracking-wide text-slate-500">{stat.label}</dt>
-                <dd className="mt-2 text-2xl font-semibold text-bay-navy">{stat.value}</dd>
+                <dd className={`mt-2 text-2xl font-semibold ${theme.statValueClassName}`}>{stat.value}</dd>
                 <p className="mt-1 text-xs text-slate-500">{stat.detail}</p>
               </div>
             ))}
@@ -53,10 +60,13 @@ type SurfaceCardProps = Readonly<{
 }>;
 
 export function SurfaceCard({ title, description, children, className }: SurfaceCardProps) {
+  const pathname = usePathname() ?? "/hub";
+  const theme = getHubSectionTheme(pathname);
+
   return (
     <section className={`section-surface ${className ?? ""}`.trim()}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg font-semibold text-bay-navy">{title}</h2>
+        <h2 className={`text-lg font-semibold ${theme.titleClassName}`}>{title}</h2>
       </div>
       {description ? <p className="mt-2 text-sm text-slate-600">{description}</p> : null}
       <div className="mt-4">{children}</div>

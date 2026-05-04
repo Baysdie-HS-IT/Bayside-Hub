@@ -1,12 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { HubNav } from "./hub-nav";
+import { getHubSectionTheme } from "@/components/hub/section-theme";
 
 const STORAGE_KEY = "bayside.sidebar.collapsed";
 
 export default function Sidebar() {
   const [collapsed, setCollapsed] = useState<boolean>(false);
+  const pathname = usePathname() ?? "/hub";
+  const theme = getHubSectionTheme(pathname);
 
   useEffect(() => {
     try {
@@ -30,11 +34,11 @@ export default function Sidebar() {
       <div className={`mb-3 w-full ${collapsed ? "px-0" : "px-2"}`}>
         <div className="flex items-center justify-between gap-3 px-2">
           <div className={`flex items-center gap-3 ${collapsed ? "justify-center" : ""}`}>
-            <div className="h-10 w-10 rounded-md bg-bay-navy/10" />
+            <div className={`h-10 w-10 rounded-md ${theme.sidebarBadgeClassName}`} />
             {!collapsed ? (
               <div>
-                <p className="text-sm font-semibold text-bay-navy">Bayside</p>
-                <p className="text-xs text-slate-500">Hub</p>
+                <p className="text-sm font-semibold text-slate-800">Bayside</p>
+                <p className="text-xs text-slate-500">{theme.label}</p>
               </div>
             ) : null}
           </div>
